@@ -43,7 +43,15 @@ const upload = multer({
 // @access Public
 router.get("/", (req, res) => {
   Marker.find()
-    .then(markers => res.json(markers))
+    .then(markers => {
+      //Removing user from markers data
+      const markersWithoutUsers = markers.map(marker => {
+        const temp = JSON.stringify(marker);
+        const { user, ...markerWithoutUser } = JSON.parse(temp);
+        return markerWithoutUser;
+      });
+      res.json(markersWithoutUsers);
+    })
     .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
 });
 
