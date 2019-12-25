@@ -8,6 +8,7 @@ const profile = require("./routes/api/profile");
 const markers = require("./routes/api/markers");
 const google = require("./routes/api/google");
 const facebook = require("./routes/api/facebook");
+const admin = require("./routes/api/admin");
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/profile", profile);
 app.use("/api/markers", markers);
 app.use("/api/google", google);
 app.use("/api/facebook", facebook);
+app.use("/api/admin", admin);
 
 const port = process.env.PORT || 5000;
 

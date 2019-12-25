@@ -8,7 +8,6 @@ const fs = require("fs");
 
 const Marker = require("../../models/Marker");
 const validateMarkerInput = require("../../validation/marker");
-const validateMarkerStatusUpdate = require("../../validation/markerStatus");
 
 // Multer options
 const fileStorage = multer.diskStorage({
@@ -132,74 +131,6 @@ router.post(
         })
         .catch(err => console.log(err));
     });
-  }
-);
-
-// @route DELETE api/markers/:id
-// @desc Delete marker
-// @access Private/admin
-router.delete(
-  "/:id",
-  passport.authenticate("jwt", { session: false }),
-  (req, res) => {
-    User.findOne({ _id: req.user.id })
-      .then(user => {
-        if (user.role !== "admin") {
-          return res
-            .status(401)
-            .json({ notauthorized: "Немає прав для здійснення цієї операції" });
-        }
-        Marker.findById(req.params.id)
-          .then(marker => {
-            marker.remove().then(() => res.json({ success: true }));
-          })
-          .catch(err =>
-            res.status(404).json({ markernotfound: "Маркеру не знайдено" })
-          );
-      })
-      .catch(err =>
-        res
-          .status(401)
-          .json({ notauthorized: "Немає прав для здійснення цієї операції" })
-      );
-  }
-);
-
-// @route PUT api/markers/:id
-// @desc Change marker status
-// @access Private
-router.put(
-  "/:id",
-  passport.authenticate("jwt", { session: false }),
-  (req, res) => {
-    const { errors, isValid } = validateMarkerStatusUpdate(req.body);
-
-    // Chech Validation
-    if (!isValid) {
-      return res.status(400).json(errors);
-    }
-
-    User.findOne({ _id: req.user.id })
-      .then(user => {
-        if (user.role !== "admin") {
-          return res
-            .status(401)
-            .json({ notauthorized: "Немає прав для здійснення цієї операції" });
-        }
-        Marker.findById(req.params.id)
-          .then(marker => {
-            marker.statusChange.push({ to: req.body.status });
-            marker.save().then(marker => res.json(marker));
-          })
-          .catch(err =>
-            res.status(404).json({ markernotfound: "Маркеру не знайдено" })
-          );
-      })
-      .catch(err =>
-        res
-          .status(401)
-          .json({ notauthorized: "Немає прав для здійснення цієї операції" })
-      );
   }
 );
 
