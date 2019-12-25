@@ -144,7 +144,7 @@ router.delete(
   (req, res) => {
     User.findOne({ _id: req.user.id })
       .then(user => {
-        if (user.status !== "admin") {
+        if (user.role !== "admin") {
           return res
             .status(401)
             .json({ notauthorized: "Немає прав для здійснення цієї операції" });
@@ -181,7 +181,7 @@ router.put(
 
     User.findOne({ _id: req.user.id })
       .then(user => {
-        if (user.status !== "admin") {
+        if (user.role !== "admin") {
           return res
             .status(401)
             .json({ notauthorized: "Немає прав для здійснення цієї операції" });

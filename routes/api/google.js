@@ -26,7 +26,7 @@ router.post("/", (req, res) => {
             const payload = {
               id: user.id,
               name: user.name,
-              status: user.status
+              role: user.role
             };
             // Sign Token
             jwt.sign(
@@ -46,7 +46,7 @@ router.post("/", (req, res) => {
         const payload = {
           id: user.id,
           name: user.name,
-          status: user.status
+          role: user.role
         };
         // Sign Token
         jwt.sign(payload, keys.secret, { expiresIn: 36000 }, (err, token) => {
