@@ -4,6 +4,7 @@ const passport = require("passport");
 const fs = require("fs");
 const path = require("path");
 
+const Marker = require("../../models/Marker");
 const validateMarkerStatusUpdate = require("../../validation/markerStatus");
 
 // Pass only admins
@@ -49,14 +50,22 @@ router.delete("/markers/:id", (req, res) => {
 // @access Private
 router.put("/markers/:id", (req, res) => {
   const { errors, isValid } = validateMarkerStatusUpdate(req.body);
+
   // Chech Validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
   Marker.findById(req.params.id)
     .then(marker => {
-      marker.statusChange.push({ to: req.body.status });
-      marker.save().then(marker => res.json(marker));
+      if (
+        marker.statusChange[marker.statusChange.length - 1].to ===
+        req.body.status
+      ) {
+        return res.status(406).json({ error: "Цей статус уже встановлено" });
+      } else {
+        marker.statusChange.push({ to: req.body.status });
+        marker.save().then(marker => res.json(marker));
+      }
     })
     .catch(err =>
       res.status(404).json({ markernotfound: "Маркеру не знайдено" })
