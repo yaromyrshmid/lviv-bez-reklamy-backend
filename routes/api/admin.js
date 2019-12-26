@@ -45,6 +45,7 @@ router.get("/markers/:page", (req, res) => {
       totalPages = Math.ceil(numOfMarkers / MARKERS_PER_PAGE);
       // Getting markers for requested page
       return Marker.find()
+        .sort({ statusChange: -1 })
         .skip((page - 1) * MARKERS_PER_PAGE)
         .limit(MARKERS_PER_PAGE);
     })
