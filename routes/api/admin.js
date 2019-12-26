@@ -7,6 +7,8 @@ const path = require("path");
 const Marker = require("../../models/Marker");
 const validateMarkerStatusUpdate = require("../../validation/markerStatus");
 
+const MARKERS_PER_PAGE = 10;
+
 // Pass only admins
 router.use(
   passport.authenticate("jwt", { session: false }),
@@ -28,6 +30,38 @@ router.use(
       );
   }
 );
+
+// @route GET api/admin/markers/:page
+// @desc Get markers from page
+// @access Private/admin
+router.get("/markers/:page", (req, res) => {
+  let totalPages;
+  const page = +req.params.page || 1;
+  Marker.find()
+    // Getting total number of markers
+    .countDocuments()
+    .then(numOfMarkers => {
+      // Getting total number of pages for front-end pagination
+      totalPages = Math.ceil(numOfMarkers / MARKERS_PER_PAGE);
+      // Getting markers for requested page
+      return Marker.find()
+        .skip((page - 1) * MARKERS_PER_PAGE)
+        .limit(MARKERS_PER_PAGE);
+    })
+    .then(markers => {
+      // Sending markers for page along with number of pages
+      res.json({ markers: markers, totalPages: totalPages });
+    })
+    .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
+});
+
+// Marker.find()
+//   .skip((page - 1) * MARKERS_PER_PAGE)
+//   .limit(MARKERS_PER_PAGE)
+//   .then(markers => {
+//     res.json(markers: {markers}, total: totalMarkers);
+//   })
+//   .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
 
 // @route DELETE api/admin/markers/:id
 // @desc Delete marker
