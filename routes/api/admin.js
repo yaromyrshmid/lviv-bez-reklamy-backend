@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
+const fs = require("fs");
+const path = require("path");
 
 const validateMarkerStatusUpdate = require("../../validation/markerStatus");
 
@@ -32,6 +34,9 @@ router.use(
 router.delete("/markers/:id", (req, res) => {
   Marker.findById(req.params.id)
     .then(marker => {
+      try {
+        fs.unlinkSync(path.join("." + marker.photo));
+      } catch (err) {}
       marker.remove().then(() => res.json({ success: true }));
     })
     .catch(err =>
