@@ -5,6 +5,15 @@ const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
+const NodeGeocoder = require("node-geocoder");
+
+const keys = require("../../config/keys");
+const options = {
+  provider: "google",
+  apiKey: keys.googleMapAPI,
+  language: "uk"
+};
+const geocoder = NodeGeocoder(options);
 
 const Marker = require("../../models/Marker");
 const validateMarkerInput = require("../../validation/marker");
@@ -119,17 +128,30 @@ router.post(
                   })
                   .catch(err => console.log(err))
                   .then(() => {
-                    // Creating new marker
-                    const newMarker = new Marker({
-                      location: JSON.parse(req.body.location),
-                      comment: req.body.comment,
-                      user: req.user.id,
-                      statusChange: [{ to: "created" }],
-                      photo: `/public/images/${req.file.filename}`
-                    });
-                    newMarker
-                      .save()
-                      .then(marker => res.json(marker))
+                    const location = JSON.parse(req.body.location);
+                    // Getting address using geocoder
+                    geocoder
+                      .reverse({ lat: location.lat, lon: location.lng })
+                      .then(geodata => {
+                        const address = {
+                          streetNumber: geodata[0].streetNumber,
+                          streetName: geodata[0].streetName,
+                          neighborhood: geodata[0].extra.neighborhood
+                        };
+                        // Creating new marker
+                        const newMarker = new Marker({
+                          location: location,
+                          comment: req.body.comment,
+                          user: req.user.id,
+                          address: address,
+                          statusChange: [{ to: "created" }],
+                          photo: `/public/images/${req.file.filename}`
+                        });
+                        newMarker
+                          .save()
+                          .then(marker => res.json(marker))
+                          .catch(err => console.log(err));
+                      })
                       .catch(err => console.log(err));
                   })
                   .catch(err => console.log(err));

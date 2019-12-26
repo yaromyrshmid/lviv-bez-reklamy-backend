@@ -55,14 +55,6 @@ router.get("/markers/:page", (req, res) => {
     .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
 });
 
-// Marker.find()
-//   .skip((page - 1) * MARKERS_PER_PAGE)
-//   .limit(MARKERS_PER_PAGE)
-//   .then(markers => {
-//     res.json(markers: {markers}, total: totalMarkers);
-//   })
-//   .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
-
 // @route DELETE api/admin/markers/:id
 // @desc Delete marker
 // @access Private/admin

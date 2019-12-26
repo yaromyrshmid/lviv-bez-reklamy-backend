@@ -18,6 +18,10 @@ const MarkerSchema = new Schema({
   comment: {
     type: String
   },
+  address: {
+    type: Object,
+    required: true
+  },
   statusChange: [
     {
       to: {
