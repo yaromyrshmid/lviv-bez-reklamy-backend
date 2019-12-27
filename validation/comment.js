@@ -1,7 +1,7 @@
 const Validator = require("validator");
 const isEmpty = require("./is-empty");
 
-module.exports = function validateMarkerInput(data) {
+module.exports = function validateMarkerComment(data) {
   let errors = {};
 
   if (

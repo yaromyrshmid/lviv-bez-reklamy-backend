@@ -6,6 +6,7 @@ const path = require("path");
 
 const Marker = require("../../models/Marker");
 const validateMarkerStatusUpdate = require("../../validation/markerStatus");
+const validateMarkerComment = require("../../validation/comment");
 
 const MARKERS_PER_PAGE = 10;
 
@@ -74,7 +75,7 @@ router.delete("/markers/:id", (req, res) => {
 
 // @route PUT api/admin/markers/:id
 // @desc Change marker status
-// @access Private
+// @access Private/admin
 router.put("/markers/:id", (req, res) => {
   const { errors, isValid } = validateMarkerStatusUpdate(req.body);
 
@@ -93,6 +94,29 @@ router.put("/markers/:id", (req, res) => {
         marker.statusChange.push({ to: req.body.status });
         marker.save().then(marker => res.json(marker));
       }
+    })
+    .catch(err =>
+      res.status(404).json({ markernotfound: "Маркеру не знайдено" })
+    );
+});
+
+// @route POST api/admin/markers/comment/:id
+// @desc Add comment to marker
+// @access Private/admin
+router.post("/markers/comment/:id", (req, res) => {
+  const { errors, isValid } = validateMarkerComment(req.body);
+
+  // Chech Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+  Marker.findById(req.params.id)
+    .then(marker => {
+      marker.comments.push({ comment: req.body.comment, author: req.user.id });
+      marker
+        .save()
+        .then(marker => res.json(marker))
+        .catch(err => res.status(400).json({ comment: "Коментар не додано" }));
     })
     .catch(err =>
       res.status(404).json({ markernotfound: "Маркеру не знайдено" })

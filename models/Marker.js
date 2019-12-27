@@ -15,9 +15,16 @@ const MarkerSchema = new Schema({
     type: String,
     required: true
   },
-  comment: {
-    type: String
-  },
+  comments: [
+    {
+      comment: { type: String },
+      date: {
+        type: Date,
+        default: Date.now()
+      },
+      author: { type: Schema.Types.ObjectId, ref: "users" }
+    }
+  ],
   address: {
     type: Object,
     required: true
