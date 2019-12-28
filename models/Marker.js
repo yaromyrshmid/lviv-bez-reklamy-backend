@@ -20,7 +20,7 @@ const MarkerSchema = new Schema({
       comment: { type: String },
       date: {
         type: Date,
-        default: Date.now()
+        default: Date.now
       },
       author: { type: Schema.Types.ObjectId, ref: "users" }
     }
@@ -37,7 +37,7 @@ const MarkerSchema = new Schema({
       },
       changedAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
         required: true
       }
     }
