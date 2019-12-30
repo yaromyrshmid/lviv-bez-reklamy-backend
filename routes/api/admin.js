@@ -42,6 +42,8 @@ router.post("/markers/:page", (req, res) => {
 
   // Getting all markers
   Marker.find()
+    .populate("user", { password: false })
+    .populate("comments.author", { password: false })
     .then(markers => {
       let markersToSend;
       // Checking if filtering is applied
