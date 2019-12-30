@@ -43,6 +43,9 @@ router.post("/", (req, res) => {
           })
           .catch(err => console.log(err));
       } else {
+        if (user.role === "banned") {
+          return res.status(403).json("Користувача заблокований");
+        }
         const payload = {
           id: user.id,
           name: user.name,

@@ -18,7 +18,7 @@ router.use(
       .then(user => {
         if (user.role !== "admin") {
           return res
-            .status(401)
+            .status(403)
             .json({ notauthorized: "Немає прав для здійснення цієї операції" });
         } else {
           next();
@@ -26,7 +26,7 @@ router.use(
       })
       .catch(err =>
         res
-          .status(401)
+          .status(403)
           .json({ notauthorized: "Немає прав для здійснення цієї операції" })
       );
   }
@@ -148,6 +148,30 @@ router.post("/markers/comment/:id", (req, res) => {
             .then(markerToSend => res.json(markerToSend));
         })
         .catch(err => res.status(400).json({ comment: "Коментар не додано" }));
+    })
+    .catch(err =>
+      res.status(404).json({ markernotfound: "Маркеру не знайдено" })
+    );
+});
+
+// @route PUT api/admin/users/ban/:id
+// @desc Ban user
+// @access Private/admin
+router.put("/users/ban/:id", (req, res) => {
+  User.findById(req.params.id, { password: false })
+    .then(user => {
+      if (user.role === "admin") {
+        return res
+          .status(403)
+          .json({ notauthorized: "Немає прав для здійснення цієї операції" });
+      }
+      if (user.role === "banned") {
+        return res
+          .status(406)
+          .json({ alreadybanned: "Користувач вже заблокований" });
+      }
+      user.role = "banned";
+      user.save().then(user => res.json(user));
     })
     .catch(err =>
       res.status(404).json({ markernotfound: "Маркеру не знайдено" })

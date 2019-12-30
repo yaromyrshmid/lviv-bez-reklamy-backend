@@ -60,6 +60,10 @@ router.post("/login", (req, res) => {
         errors.email = "Користувача не знайдено";
         return res.status(404).json(errors);
       }
+      if (user.role === "banned") {
+        errors.user = "Користувача заблокований";
+        return res.status(403).json(errors);
+      }
       bcrypt.compare(password, user.password).then(isMatch => {
         if (isMatch) {
           const payload = {
