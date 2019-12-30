@@ -141,7 +141,12 @@ router.post("/markers/comment/:id", (req, res) => {
       marker.comments.push({ comment: req.body.comment, author: req.user.id });
       marker
         .save()
-        .then(marker => res.json(marker))
+        .then(marker => {
+          Marker.findById(req.params.id)
+            .populate("user", { password: false })
+            .populate("comments.author", { password: false })
+            .then(markerToSend => res.json(markerToSend));
+        })
         .catch(err => res.status(400).json({ comment: "Коментар не додано" }));
     })
     .catch(err =>
