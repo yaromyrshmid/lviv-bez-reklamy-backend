@@ -32,27 +32,51 @@ router.use(
   }
 );
 
-// @route GET api/admin/markers/:page
-// @desc Get markers from page
+// @route POST api/admin/markers/:page
+// @desc Get markers from page according to filter
 // @access Private/admin
-router.get("/markers/:page", (req, res) => {
+router.post("/markers/:page", (req, res) => {
   let totalPages;
+  // Getting page number from request parameter
   const page = +req.params.page || 1;
+
+  // Getting all markers
   Marker.find()
-    // Getting total number of markers
-    .countDocuments()
-    .then(numOfMarkers => {
-      // Getting total number of pages for front-end pagination
-      totalPages = Math.ceil(numOfMarkers / MARKERS_PER_PAGE);
-      // Getting markers for requested page
-      return Marker.find()
-        .sort({ statusChange: -1 })
-        .skip((page - 1) * MARKERS_PER_PAGE)
-        .limit(MARKERS_PER_PAGE);
-    })
     .then(markers => {
+      let markersToSend;
+      // Checking if filtering is applied
+      if (req.body.statusFilter === "") {
+        markersToSend = markers;
+      } else {
+        markersToSend = markers.filter(
+          marker =>
+            marker.statusChange[marker.statusChange.length - 1].to ===
+            req.body.statusFilter
+        );
+      }
+      // Calculating number of pages
+      totalPages = Math.ceil(markersToSend.length / MARKERS_PER_PAGE);
+
+      // Compare function to sort according to last status change
+      const compare = (marker_2, marker_1) => {
+        return (
+          marker_1.statusChange[marker_1.statusChange.length - 1].changedAt -
+          marker_2.statusChange[marker_2.statusChange.length - 1].changedAt
+        );
+      };
+
+      // Sorting
+      markersToSend.sort(compare);
+
+      //Pagination
+      const offset = (page - 1) * MARKERS_PER_PAGE;
+      const markersPaginated = markersToSend.slice(
+        offset,
+        offset + MARKERS_PER_PAGE
+      );
+
       // Sending markers for page along with number of pages
-      res.json({ markers: markers, totalPages: totalPages });
+      res.json({ markers: markersPaginated, totalPages: totalPages });
     })
     .catch(err => res.status(404).json({ nomarkersfound: "Маркери відсутні" }));
 });
