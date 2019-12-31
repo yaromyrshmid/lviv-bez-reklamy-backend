@@ -140,6 +140,8 @@ router.put("/markers/:id", (req, res) => {
     return res.status(400).json(errors);
   }
   Marker.findById(req.params.id)
+    .populate("user", { password: false })
+    .populate("comments.author", { password: false })
     .then(marker => {
       if (
         marker.statusChange[marker.statusChange.length - 1].to ===
