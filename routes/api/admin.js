@@ -46,19 +46,49 @@ router.post("/markers/:page", (req, res) => {
     .populate("comments.author", { password: false })
     .then(markers => {
       let markersToSend;
-      // Checking if filtering is applied
-      if (req.body.statusFilter === "") {
+      // Function to stringify date
+      const dateWithoutTime = date => {
+        return (
+          date.getFullYear() +
+          "/" +
+          (date.getMonth() + 1) +
+          "/" +
+          date.getDate()
+        );
+      };
+      // Stringifing requested date
+      const requestedDate = dateWithoutTime(new Date(req.body.dateFilter));
+      // If no filtering is applied
+      if (req.body.statusFilter === "" && !req.body.dateFilter) {
         markersToSend = markers;
-      } else {
+        // If only date filter is applied
+      } else if (req.body.statusFilter === "") {
+        markersToSend = markers.filter(
+          marker =>
+            dateWithoutTime(
+              marker.statusChange[marker.statusChange.length - 1].changedAt
+            ) === requestedDate
+        );
+        // If only status filter is applied
+      } else if (!req.body.dateFilter) {
         markersToSend = markers.filter(
           marker =>
             marker.statusChange[marker.statusChange.length - 1].to ===
             req.body.statusFilter
         );
+        // If all filtering is applied
+      } else {
+        markersToSend = markers.filter(
+          marker =>
+            marker.statusChange[marker.statusChange.length - 1].to ===
+              req.body.statusFilter &&
+            dateWithoutTime(
+              marker.statusChange[marker.statusChange.length - 1].changedAt
+            ) === requestedDate
+        );
       }
       // Calculating number of pages
       totalPages = Math.ceil(markersToSend.length / MARKERS_PER_PAGE);
-
       // Compare function to sort according to last status change
       const compare = (marker_2, marker_1) => {
         return (
