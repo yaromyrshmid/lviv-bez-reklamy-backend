@@ -38,7 +38,7 @@ module.exports = function validateRegisterInput(data) {
   }
 
   if (Validator.isEmpty(data.password2)) {
-    errors.password2 = "Підтвердження паролю є обов'язковим";
+    errors.password2 = "Пароль є обов'язковим";
   }
 
   if (!Validator.equals(data.password, data.password2)) {

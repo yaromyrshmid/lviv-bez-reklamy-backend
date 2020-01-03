@@ -1,10 +1,13 @@
 const Validator = require("validator");
 const isEmpty = require("./is-empty");
 
-module.exports = function validateComment(data) {
+module.exports = function validateMarkerComment(data) {
   let errors = {};
 
-  if (!Validator.isLength(data.comment, { min: 4, max: 300 })) {
+  if (
+    !isEmpty(data.comment) &&
+    !Validator.isLength(data.comment, { min: 4, max: 300 })
+  ) {
     errors.comment = "Коментар повинен бути від 4 до 300 символів";
   }
 

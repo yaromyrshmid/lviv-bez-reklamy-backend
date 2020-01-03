@@ -16,7 +16,8 @@ const options = {
 const geocoder = NodeGeocoder(options);
 
 const Marker = require("../../models/Marker");
-const validateMarkerComment = require("../../validation/comment");
+const validateMarkerComment = require("../../validation/markerComment");
+const validateComment = require("../../validation/comment");
 const isEmpty = require("../../validation/is-empty");
 
 // Multer options
@@ -173,35 +174,43 @@ router.post(
   "/comment/:id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    const { errors, isValid } = validateMarkerComment(req.body);
+    const { errors, isValid } = validateComment(req.body);
 
     // Chech Validation
     if (!isValid) {
       return res.status(400).json(errors);
     }
-    Marker.findById(req.params.id).then(marker => {
-      if (marker.user.toString() !== req.user.id) {
-        return res
-          .status(403)
-          .json({ notauthorized: "Немає прав для здійснення цієї операції" });
-      }
-      if (
-        marker.comments.length === 0 ||
-        (marker.comments.length > 0 &&
-          marker.comments[marker.comments.length - 1].author.toString() ===
-            req.user.id)
-      ) {
-        return res.status(403).json({ comment: "Не можливо додати коментар" });
-      }
-      marker.comments.push({ comment: req.body.comment, author: marker.user });
-      marker
-        .save()
-        .then(marker => res.json(marker))
-        .catch(err => res.status(400).json({ comment: "Коментар не додано" }));
-    });
-    // .catch(err =>
-    //   res.status(404).json({ markernotfound: "Маркеру не знайдено" })
-    // );
+    Marker.findById(req.params.id)
+      .then(marker => {
+        if (marker.user.toString() !== req.user.id) {
+          return res
+            .status(403)
+            .json({ notauthorized: "Немає прав для здійснення цієї операції" });
+        }
+        if (
+          marker.comments.length === 0 ||
+          (marker.comments.length > 0 &&
+            marker.comments[marker.comments.length - 1].author.toString() ===
+              req.user.id)
+        ) {
+          return res
+            .status(403)
+            .json({ comment: "Не можливо додати коментар" });
+        }
+        marker.comments.push({
+          comment: req.body.comment,
+          author: marker.user
+        });
+        marker
+          .save()
+          .then(marker => res.json(marker))
+          .catch(err =>
+            res.status(400).json({ comment: "Коментар не додано" })
+          );
+      })
+      .catch(err =>
+        res.status(404).json({ markernotfound: "Маркеру не знайдено" })
+      );
   }
 );
 
