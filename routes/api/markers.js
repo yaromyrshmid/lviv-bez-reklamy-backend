@@ -20,14 +20,27 @@ const isEmpty = require("../../validation/is-empty");
 // @desc Get markers
 // @access Public
 router.get("/", (req, res) => {
-  Marker.find()
-    .project({ photo: 0, photoType: 0, user: 0 })
+  Marker.find({}, { user: false, photo: false, photoType: false })
     .then(markers => {
       res.json(markers);
     })
     .catch(err => {
       console.log(err);
       res.status(404).json({ nomarkersfound: "Маркери відсутні" });
+    });
+});
+
+// @route Get api/markers/:markerId
+// @desc Get marker with virtual photo
+// @access Public
+router.get("/byId/:markerId", (req, res) => {
+  Marker.findOne({ _id: req.params.markerId })
+    .then(marker => {
+      res.json(marker);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(404).json({ nomarkersfound: "Маркер відсутній" });
     });
 });
 
