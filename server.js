@@ -16,8 +16,8 @@ const app = express();
 app.use(cors());
 
 // Body Parser
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(bodyParser.json({ limit: "50mb", extended: true }));
 
 // Public storage
 app.use("*/images", express.static("public/images"));

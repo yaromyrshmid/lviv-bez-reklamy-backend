@@ -12,6 +12,10 @@ const MarkerSchema = new Schema({
     ref: "users"
   },
   photo: {
+    type: Buffer,
+    required: true
+  },
+  photoType: {
     type: String,
     required: true
   },
@@ -43,5 +47,16 @@ const MarkerSchema = new Schema({
     }
   ]
 });
+
+// MarkerSchema.set({ toJSON: { virtuals: true } });
+// MarkerSchema.set({ toObject: { virtuals: true } });
+
+// MarkerSchema.virtual("virtualPhoto").get(function() {
+//   if (this.photo != null && this.photoType != null) {
+//     return `data:${this.photoType};charset=utf-8;base64,${this.photo.toString(
+//       "base64"
+//     )}`;
+//   }
+// });
 
 module.exports = Marker = mongoose.model("markers", MarkerSchema);
