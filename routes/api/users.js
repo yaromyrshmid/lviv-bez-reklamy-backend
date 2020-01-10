@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
+const crypto = require("crypto");
 
 const User = require("../../models/User");
 const keys = require("../../config/keys");
@@ -34,36 +35,84 @@ router.post("/register", (req, res) => {
       errors.email = "Користувач з такою адресою уже зареєстрований";
       return res.status(400).json(errors);
     } else {
-      const newUser = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password
-      });
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if (err) throw err;
-          newUser.password = hash;
-          newUser
-            .save()
-            .then(user => {
-              res.status(200).json("success");
-              return transporter
-                .sendMail({
-                  to: req.body.email,
-                  from: "no-reply@lviv-bez-reklamy.com",
-                  subject: "Підтвердіть Email | Львів без реклами",
-                  html: "<h3>Для підтвердження Emailу тицьніть тут.</h3>"
-                })
-                .catch(err => console.log(err));
-            })
-            .catch(err => console.log(err));
+      // Generating email confirmation link
+      crypto.randomBytes(32, (err, buffer) => {
+        if (err) {
+          res.status(400).json(err);
+        }
+        const emailConfirmationToken = buffer.toString("hex");
+        const newUser = new User({
+          name: req.body.name,
+          email: req.body.email,
+          password: req.body.password,
+          emailConfirmationToken
+        });
+        bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(newUser.password, salt, (err, hash) => {
+            if (err) throw err;
+            newUser.password = hash;
+            newUser
+              .save()
+              .then(user => {
+                res.status(200).json("success");
+                return transporter
+                  .sendMail({
+                    to: req.body.email,
+                    from: "no-reply@lviv-bez-reklamy.com",
+                    subject: "Підтвердіть Email | Львів без реклами",
+                    html: `<h3>Для підтвердження Emailу <a href="${keys.frontEndURL}/confirmemail/${emailConfirmationToken}" rel="noopener noreferrer" target="_blank"> тицьніть тут.</a></h3>`
+                  })
+                  .catch(err => console.log(err));
+              })
+              .catch(err => console.log(err));
+          });
         });
       });
     }
   });
 });
 
-// @route GET api/users/login
+// @route POST api/users/confirmemail/:emailConfirmationToken
+// @desc Confirm email for new user
+// @access Public
+router.post("/confirmemail/:emailConfirmationToken", (req, res) => {
+  const errors = {};
+  User.findOneAndUpdate(
+    { emailConfirmationToken: req.params.emailConfirmationToken },
+    { $unset: { emailConfirmationToken: 1 }, $set: { emailConfirmed: true } },
+    { multi: false }
+  )
+    .then(user => {
+      if (!user) {
+        errors.email =
+          "Користувача не знайдено або електронна адреса вже підтверджена";
+        return res.status(404).json(errors);
+      }
+      if (user.role === "banned") {
+        errors.user = "Користувача заблокований";
+        return res.status(403).json(errors);
+      }
+      if (user.emailConfirmed) {
+        errors.user = "Електронна адреса вже підтверджена";
+        return res.status(403).json(errors);
+      }
+      const payload = {
+        id: user.id,
+        name: user.name,
+        role: user.role
+      };
+      // Sign Token
+      jwt.sign(payload, keys.secret, { expiresIn: 36000 }, (err, token) => {
+        res.json({
+          success: true,
+          token: "Bearer " + token
+        });
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+// @route POST api/users/login
 // @desc Login user / Returning JWT
 // @access Public
 router.post("/login", (req, res) => {
@@ -82,6 +131,11 @@ router.post("/login", (req, res) => {
       }
       if (user.role === "banned") {
         errors.user = "Користувача заблокований";
+        return res.status(403).json(errors);
+      }
+      if (!user.emailConfirmed) {
+        errors.user =
+          "Підтвердіть електронну адресу, перейшовши за посиланням, надісланим на вашу пошту після реєстрації";
         return res.status(403).json(errors);
       }
       bcrypt.compare(password, user.password).then(isMatch => {

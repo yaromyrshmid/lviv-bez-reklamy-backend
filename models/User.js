@@ -17,10 +17,7 @@ const UserSchema = new Schema({
     default: false
   },
   emailConfirmationToken: {
-    token: {
-      type: String
-    },
-    expiration: { type: Date }
+    type: String
   },
   password: {
     type: String
