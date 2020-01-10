@@ -2,11 +2,21 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
 
 const User = require("../../models/User");
 const keys = require("../../config/keys");
 const validateRegisterInput = require("../../validation/registration");
 const validateLoginInput = require("../../validation/login");
+
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: keys.sendGridAPI
+    }
+  })
+);
 
 // @route GET api/users/register
 // @desc Register user
@@ -35,7 +45,17 @@ router.post("/register", (req, res) => {
           newUser.password = hash;
           newUser
             .save()
-            .then(user => res.json(user))
+            .then(user => {
+              res.status(200).json("success");
+              return transporter
+                .sendMail({
+                  to: req.body.email,
+                  from: "no-reply@lviv-bez-reklamy.com",
+                  subject: "Підтвердіть Email | Львів без реклами",
+                  html: "<h3>Для підтвердження Emailу тицьніть тут.</h3>"
+                })
+                .catch(err => console.log(err));
+            })
             .catch(err => console.log(err));
         });
       });
