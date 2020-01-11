@@ -10,6 +10,8 @@ const User = require("../../models/User");
 const keys = require("../../config/keys");
 const validateRegisterInput = require("../../validation/registration");
 const validateLoginInput = require("../../validation/login");
+const validateForgotPasswordInput = require("../../validation/forgotPassword");
+const validatePasswordsInput = require("../../validation/passwords");
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({
@@ -156,6 +158,101 @@ router.post("/login", (req, res) => {
           errors.password = "Пароль не вірний";
           return res.status(400).json(errors);
         }
+      });
+    })
+    .catch(err => console.log(err));
+});
+
+// @route POST api/users/forgotpassword
+// @desc Creating link to reset password
+// @access Public
+router.post("/forgotpassword", (req, res) => {
+  const { errors, isValid } = validateForgotPasswordInput(req.body);
+  // Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+  const email = req.body.email;
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      res.status(400).json(err);
+    }
+    const passwordResetToken = buffer.toString("hex");
+    User.findOne({ email }).then(user => {
+      if (!user) {
+        errors.email = "Користувача не знайдено";
+        return res.status(404).json(errors);
+      }
+      if (user.role === "banned") {
+        errors.email = "Користувача заблокований";
+        return res.status(403).json(errors);
+      }
+      if (!user.password) {
+        errors.email =
+          "Користувач входив в систему за допомогою Google або Facebook";
+        return res.status(403).json(errors);
+      }
+      if (!user.emailConfirmed) {
+        errors.email =
+          "Підтвердіть електронну адресу, перейшовши за посиланням, надісланим на вашу пошту після реєстрації";
+        return res.status(403).json(errors);
+      }
+      user.passwordResetToken = passwordResetToken;
+      user.passwordResetExpiration = Date.now() + 3600000;
+      user
+        .save()
+        .then(user => {
+          res.status(200).json("success");
+          return transporter
+            .sendMail({
+              to: user.email,
+              from: "no-reply@lviv-bez-reklamy.com",
+              subject: "Зміна паролю | Львів без реклами",
+              html: `<h3>Для зміни паролю <a href="${keys.frontEndURL}/setnewpassword/${passwordResetToken}" rel="noopener noreferrer" target="_blank"> перейдіть за посиланням.</a></h3>`
+            })
+            .catch(err => console.log(err));
+        })
+        .catch(err => console.log(err));
+    });
+  });
+});
+
+// @route POST api/users/resetpassword/:passwordResetToken
+// @desc Reseting password
+// @access Public
+router.post("/resetpassword/:passwordResetToken", (req, res) => {
+  const { errors, isValid } = validatePasswordsInput(req.body);
+  // Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+  User.findOneAndUpdate(
+    { passwordResetToken: req.params.passwordResetToken },
+    { $unset: { passwordResetToken: 1 } },
+    { multi: false }
+  )
+    .then(user => {
+      if (!user) {
+        errors.user = "Користувача не знайдено";
+        return res.status(404).json(errors);
+      }
+      if (user.role === "banned") {
+        errors.user = "Користувач заблокований";
+        return res.status(403).json(errors);
+      }
+      if (user.passwordResetExpiration < Date.now()) {
+        errors.user = "Посилання для зміни паролю не дійсне";
+        return res.status(403).json(errors);
+      }
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(req.body.password, salt, (err, hash) => {
+          if (err) throw err;
+          user.password = hash;
+          user
+            .save()
+            .then(() => res.status(200).json("success"))
+            .catch(err => console.log(err));
+        });
       });
     })
     .catch(err => console.log(err));
