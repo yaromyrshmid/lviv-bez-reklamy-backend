@@ -11,6 +11,20 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
+  emailConfirmed: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  emailConfirmationToken: {
+    type: String
+  },
+  passwordResetToken: {
+    type: String
+  },
+  passwordResetExpiration: {
+    type: Date
+  },
   password: {
     type: String
     // required: true
