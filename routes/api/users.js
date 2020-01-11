@@ -132,7 +132,7 @@ router.post("/login", (req, res) => {
         return res.status(404).json(errors);
       }
       if (user.role === "banned") {
-        errors.user = "Користувача заблокований";
+        errors.user = "Користувач заблокований";
         return res.status(403).json(errors);
       }
       if (!user.emailConfirmed) {
