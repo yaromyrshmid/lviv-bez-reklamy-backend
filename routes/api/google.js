@@ -18,7 +18,9 @@ router.post("/", (req, res) => {
         const newUser = new User({
           name: decoded.name,
           email: decoded.email,
-          photo: decoded.picture
+          photo: decoded.picture,
+          loginThirdParty: true,
+          emailConfirmed: true
         });
         newUser
           .save()

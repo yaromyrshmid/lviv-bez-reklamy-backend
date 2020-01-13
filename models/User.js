@@ -11,6 +11,11 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
+  loginThirdParty: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   emailConfirmed: {
     type: Boolean,
     required: true,

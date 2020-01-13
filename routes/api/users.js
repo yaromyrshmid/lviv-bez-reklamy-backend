@@ -203,7 +203,7 @@ router.post("/forgotpassword", (req, res) => {
         errors.email = "Користувача заблокований";
         return res.status(403).json(errors);
       }
-      if (!user.password) {
+      if (loginThirdParty) {
         errors.email =
           "Користувач входив в систему за допомогою Google або Facebook";
         return res.status(403).json(errors);
