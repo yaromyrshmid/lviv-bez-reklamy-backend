@@ -18,7 +18,7 @@ router.post("/", (req, res) => {
         const newUser = new User({
           name: decoded.name,
           email: decoded.email,
-          photo: decoded.picture,
+          photoURL: decoded.picture,
           loginThirdParty: true,
           emailConfirmed: true
         });
