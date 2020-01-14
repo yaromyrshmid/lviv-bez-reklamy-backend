@@ -2,9 +2,11 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const keys = require("../../config/keys");
 const validateName = require("../../validation/name");
+const validateChangePassword = require("../../validation/changePassword");
 
 // @route GET api/profile
 // @desc Get user's profile
@@ -102,6 +104,51 @@ router.post(
               token: "Bearer " + token
             });
           });
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(404).json({ server: "Помилка серверу" });
+      });
+  }
+);
+
+// @route POST api/profile/password
+// @desc Change user's password
+// @access Private
+router.post(
+  "/password",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateChangePassword(req.body);
+    // Chech Validation
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+    User.findOne({ _id: req.user._id })
+      .then(user => {
+        if (!user) {
+          return res.status(404).json({ user: "Користувача не знайдено" });
+        }
+        bcrypt.compare(req.body.password, user.password).then(isMatch => {
+          if (isMatch) {
+            bcrypt.genSalt(10, (err, salt) => {
+              bcrypt.hash(req.body.newpassword, salt, (err, hash) => {
+                if (err) throw err;
+                user.password = hash;
+                user
+                  .save()
+                  .then(user => res.json("Пароль змінено"))
+                  .catch(err => {
+                    console.log(err);
+                    res.status(404).json({ server: "Помилка серверу" });
+                  });
+              });
+            });
+          } else {
+            errors.password = "Пароль не вірний";
+            return res.status(400).json(errors);
+          }
         });
       })
       .catch(err => {

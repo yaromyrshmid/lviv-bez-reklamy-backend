@@ -28,7 +28,8 @@ router.post("/", (req, res) => {
             const payload = {
               id: user.id,
               name: user.name,
-              role: user.role
+              role: user.role,
+              loginThirdParty: user.loginThirdParty
             };
             // Sign Token
             jwt.sign(
@@ -51,7 +52,8 @@ router.post("/", (req, res) => {
         const payload = {
           id: user.id,
           name: user.name,
-          role: user.role
+          role: user.role,
+          loginThirdParty: user.loginThirdParty
         };
         // Sign Token
         jwt.sign(payload, keys.secret, { expiresIn: 36000 }, (err, token) => {
