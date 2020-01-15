@@ -18,7 +18,9 @@ router.post("/", (req, res) => {
         const newUser = new User({
           name: decoded.name,
           email: decoded.email,
-          photo: decoded.picture
+          photoURL: decoded.picture,
+          loginThirdParty: true,
+          emailConfirmed: true
         });
         newUser
           .save()
@@ -26,7 +28,8 @@ router.post("/", (req, res) => {
             const payload = {
               id: user.id,
               name: user.name,
-              role: user.role
+              role: user.role,
+              loginThirdParty: user.loginThirdParty
             };
             // Sign Token
             jwt.sign(
@@ -49,7 +52,8 @@ router.post("/", (req, res) => {
         const payload = {
           id: user.id,
           name: user.name,
-          role: user.role
+          role: user.role,
+          loginThirdParty: user.loginThirdParty
         };
         // Sign Token
         jwt.sign(payload, keys.secret, { expiresIn: 36000 }, (err, token) => {

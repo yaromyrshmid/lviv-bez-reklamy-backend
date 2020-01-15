@@ -46,7 +46,14 @@ const MarkerSchema = new Schema(
           required: true
         }
       }
-    ]
+    ],
+    silverAllocated: {
+      type: Boolean,
+      default: false
+    },
+    silverCollected: {
+      type: Date
+    }
   },
   { toJSON: { virtuals: true } }
 );

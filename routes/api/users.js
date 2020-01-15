@@ -64,9 +64,17 @@ router.post("/register", (req, res) => {
                     subject: "Підтвердіть Email | Львів без реклами",
                     html: `<h3>Для підтвердження Emailу <a href="${keys.frontEndURL}/confirmemail/${emailConfirmationToken}" rel="noopener noreferrer" target="_blank"> тицьніть тут.</a></h3>`
                   })
-                  .catch(err => console.log(err));
+                  .catch(err => {
+                    console.log(err);
+                    errors.server = "Помилка серверу";
+                    res.status(500).json(errors.server);
+                  });
               })
-              .catch(err => console.log(err));
+              .catch(err => {
+                console.log(err);
+                errors.server = "Помилка серверу";
+                res.status(500).json(errors.server);
+              });
           });
         });
       });
@@ -111,7 +119,11 @@ router.post("/confirmemail/:emailConfirmationToken", (req, res) => {
         });
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      errors.server = "Помилка серверу";
+      res.status(500).json(errors.server);
+    });
 });
 
 // @route POST api/users/login
@@ -132,11 +144,11 @@ router.post("/login", (req, res) => {
         return res.status(404).json(errors);
       }
       if (user.role === "banned") {
-        errors.user = "Користувач заблокований";
+        errors.email = "Користувач заблокований";
         return res.status(403).json(errors);
       }
       if (!user.emailConfirmed) {
-        errors.user =
+        errors.email =
           "Підтвердіть електронну адресу, перейшовши за посиланням, надісланим на вашу пошту після реєстрації";
         return res.status(403).json(errors);
       }
@@ -160,7 +172,11 @@ router.post("/login", (req, res) => {
         }
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      errors.server = "Помилка серверу";
+      res.status(500).json(errors.server);
+    });
 });
 
 // @route POST api/users/forgotpassword
@@ -187,7 +203,7 @@ router.post("/forgotpassword", (req, res) => {
         errors.email = "Користувача заблокований";
         return res.status(403).json(errors);
       }
-      if (!user.password) {
+      if (loginThirdParty) {
         errors.email =
           "Користувач входив в систему за допомогою Google або Facebook";
         return res.status(403).json(errors);
@@ -210,9 +226,17 @@ router.post("/forgotpassword", (req, res) => {
               subject: "Зміна паролю | Львів без реклами",
               html: `<h3>Для зміни паролю <a href="${keys.frontEndURL}/setnewpassword/${passwordResetToken}" rel="noopener noreferrer" target="_blank"> перейдіть за посиланням.</a></h3>`
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+              console.log(err);
+              errors.server = "Помилка серверу";
+              res.status(500).json(errors.server);
+            });
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.log(err);
+          errors.server = "Помилка серверу";
+          res.status(500).json(errors.server);
+        });
     });
   });
 });
@@ -246,16 +270,28 @@ router.post("/resetpassword/:passwordResetToken", (req, res) => {
       }
       bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(req.body.password, salt, (err, hash) => {
-          if (err) throw err;
+          if (err) {
+            console.log(err);
+            errors.server = "Помилка серверу";
+            res.status(500).json(errors.server);
+          }
           user.password = hash;
           user
             .save()
             .then(() => res.status(200).json("success"))
-            .catch(err => console.log(err));
+            .catch(err => {
+              console.log(err);
+              errors.server = "Помилка серверу";
+              res.status(500).json(errors.server);
+            });
         });
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      errors.server = "Помилка серверу";
+      res.status(500).json(errors.server);
+    });
 });
 
 module.exports = router;
