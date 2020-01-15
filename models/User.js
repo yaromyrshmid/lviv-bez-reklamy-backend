@@ -52,6 +52,11 @@ const UserSchema = new Schema(
     },
     photoType: {
       type: String
+    },
+    silver: {
+      type: Number,
+      required: true,
+      default: 0
     }
   },
   { toJSON: { virtuals: true } }

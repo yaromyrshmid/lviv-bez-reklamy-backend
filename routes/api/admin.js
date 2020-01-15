@@ -145,6 +145,16 @@ router.put("/markers/:id", (req, res) => {
         return res.status(406).json({ error: "Цей статус уже встановлено" });
       } else {
         marker.statusChange.push({ to: req.body.status });
+        const firstTimeremoved =
+          marker.statusChange.filter(markerItem => markerItem.to === "removed")
+            .length === 1;
+        if (
+          firstTimeremoved &&
+          !marker.silverAllocated &&
+          !marker.silverCollected
+        ) {
+          marker.silverAllocated = true;
+        }
         marker.save().then(marker => res.json(marker));
       }
     })

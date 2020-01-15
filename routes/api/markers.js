@@ -20,7 +20,17 @@ const isEmpty = require("../../validation/is-empty");
 // @desc Get markers
 // @access Public
 router.get("/", (req, res) => {
-  Marker.find({}, { user: false, photo: false, photoType: false })
+  Marker.find(
+    {},
+    {
+      user: false,
+      photo: false,
+      photoType: false,
+      comments: false,
+      silverAllocated: false,
+      silverCollected: false
+    }
+  )
     .then(markers => {
       res.json(markers);
     })
@@ -34,7 +44,15 @@ router.get("/", (req, res) => {
 // @desc Get marker with virtual photo
 // @access Public
 router.get("/byId/:markerId", (req, res) => {
-  Marker.findOne({ _id: req.params.markerId })
+  Marker.findOne(
+    { _id: req.params.markerId },
+    {
+      user: false,
+      comments: false,
+      silverAllocated: false,
+      silverCollected: false
+    }
+  )
     .then(marker => {
       res.json(marker);
     })

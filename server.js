@@ -10,6 +10,7 @@ const markers = require("./routes/api/markers");
 const google = require("./routes/api/google");
 const facebook = require("./routes/api/facebook");
 const admin = require("./routes/api/admin");
+const silver = require("./routes/api/silver");
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/markers", markers);
 app.use("/api/google", google);
 app.use("/api/facebook", facebook);
 app.use("/api/admin", admin);
+app.use("/api/silver", silver);
 
 const port = process.env.PORT || 5000;
 
