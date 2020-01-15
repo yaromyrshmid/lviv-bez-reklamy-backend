@@ -16,7 +16,7 @@ const validatePasswordsInput = require("../../validation/passwords");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
-      api_key: keys.sendGridAPI
+      api_key: keys.SENDGRID_API_KEY
     }
   })
 );

@@ -7,5 +7,6 @@ module.exports = {
     callbackURL: process.env.GOOGLE_AUTH_CALLBACK_URL
   },
   googleMapAPI: process.env.GOOGLE_MAP_API,
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
   frontEndURL: process.env.FRONT_END_URL
 };
